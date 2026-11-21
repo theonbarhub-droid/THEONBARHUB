@@ -7,15 +7,18 @@ export default function Home() {
 
   return (
     <div>
-      <section className="bg-brand-ink text-paper">
-        <div className="mx-auto max-w-5xl px-5 py-20 sm:py-28">
-          <p className="font-serif italic text-lg text-accent-soft mb-4">Ontario bar exam preparation</p>
-          <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-semibold max-w-4xl leading-[1.08]">
+      <section className="border-b border-line">
+        <div className="mx-auto max-w-5xl px-5 pt-14 pb-14 sm:pt-20 sm:pb-20">
+          <div className="flex items-center gap-4">
+            <span className="font-serif italic text-accent whitespace-nowrap">Ontario bar exam preparation</span>
+            <span className="flex-1 h-px bg-line" />
+          </div>
+          <h1 className="font-serif text-4xl sm:text-6xl lg:text-7xl font-semibold leading-[1.04] mt-7 max-w-4xl">
             Pass the LSO licensing exams with prep built on what candidates actually face.
           </h1>
-          <p className="mt-6 text-lg text-paper/75 max-w-2xl leading-relaxed">
-            Free tools, a timed practice exam with real diagnostics, and plain-English guides. The full Solicitor and
-            Barrister study package is coming, for one simple price per sitting.
+          <p className="lead mt-7 max-w-2xl">
+            Free tools, a timed practice exam that tells you why you missed the marks you missed, and guides written in
+            plain English. The full study package is coming, for one price per sitting.
           </p>
           <div className="mt-9">
             <Waitlist source="home-hero" />

@@ -1,16 +1,16 @@
 @import "tailwindcss";
 
 :root {
-  --paper: #fbfbf9;
-  --card: #ffffff;
-  --wash: #eef1ef;
-  --ink: #14201d;
-  --muted: #5c6b66;
-  --line: #e3e7e4;
-  --brand: #0d5257;
-  --brand-ink: #0a2a2b;
-  --accent: #a9761f;
-  --accent-soft: #f2e9d4;
+  --paper: #f7f5ef; /* warm ivory */
+  --card: #fffdf8; /* warm white */
+  --wash: #efece2; /* warm wash */
+  --ink: #1a241f; /* warm near-black, green undertone */
+  --muted: #5f6a61;
+  --line: #e4ddce; /* warm hairline */
+  --brand: #134a45; /* deep pine-teal */
+  --brand-ink: #0e2b27; /* dark warm green */
+  --accent: #9a6a1b; /* deep gold */
+  --accent-soft: #efe2c6;
 }
 
 @theme inline {
@@ -131,4 +131,23 @@ a {
   font-style: italic;
   font-size: 1rem;
   color: var(--accent);
+}
+
+/* Standfirst / lead paragraph, editorial */
+.lead {
+  font-family: var(--font-serif);
+  font-size: 1.25rem;
+  line-height: 1.7;
+  color: var(--muted);
+}
+
+/* Drop cap on the opening paragraph of an article */
+.prose > p:first-of-type::first-letter {
+  float: left;
+  font-family: var(--font-serif);
+  font-weight: 600;
+  font-size: 3.1rem;
+  line-height: 0.82;
+  padding: 0.35rem 0.55rem 0 0;
+  color: var(--brand);
 }
