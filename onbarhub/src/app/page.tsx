@@ -16,8 +16,8 @@ export default function Home() {
             Pass the LSO licensing exams with prep built on what candidates actually face.
           </h1>
           <p className="mt-4 text-lg text-muted max-w-2xl">
-            Free tools and plain-English guides now. Smart practice for the Solicitor and Barrister exams is coming,
-            for one simple price per sitting.
+            Free tools, a timed practice exam and plain-English guides now. The full Solicitor and Barrister study
+            package is coming, for one simple price per sitting.
           </p>
           <div className="mt-8">
             <Waitlist source="home-hero" />
@@ -37,10 +37,18 @@ export default function Home() {
               Estimated release windows for the November 2026 Barrister and Solicitor exams, plus every 2027 deadline.
             </p>
           </Link>
-          <div className="rounded-xl border border-dashed border-line p-6 text-muted">
-            <p className="text-lg font-bold text-ink">Coming soon</p>
-            <p className="mt-1">Study-hours planner, page-finding drill and a 20-question readiness check.</p>
-          </div>
+          <Link
+            href="/tools/practice-exam"
+            className="rounded-xl border border-line p-6 no-underline text-ink hover:border-brand"
+          >
+            <p className="text-lg font-bold">
+              Solicitor practice exam <span className="text-xs align-middle text-accent font-semibold">New</span>
+            </p>
+            <p className="text-muted mt-1">
+              A free timed, exam-style mock with a question palette, per-question timing and a subject-by-subject score
+              breakdown.
+            </p>
+          </Link>
         </div>
       </section>
 
