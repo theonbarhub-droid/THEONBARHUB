@@ -273,8 +273,9 @@ export default function ExamClient({ mocks }: { mocks: Mock[] }) {
         {revealed && (
           <div className="mt-4 rounded-lg bg-wash border border-line p-4 text-sm">
             <p className="font-semibold">{chosen === q.answer ? "Correct." : "Not quite."}</p>
+            {q.hook && <p className="mt-1 italic text-brand">{q.hook}</p>}
             {q.explanation && <p className="mt-1 text-muted">{q.explanation}</p>}
-            {q.reference && <p className="mt-2 text-xs text-muted">Reference: {q.reference}</p>}
+            {q.reference && <p className="mt-2 text-xs text-muted">{q.reference}</p>}
           </div>
         )}
 
@@ -483,8 +484,9 @@ function Review({
                     );
                   })}
                 </div>
-                {q.explanation && <p className="mt-3 text-sm text-muted">{q.explanation}</p>}
-                {q.reference && <p className="mt-1 text-xs text-muted">Reference: {q.reference}</p>}
+                {q.hook && <p className="mt-3 text-sm italic text-brand">{q.hook}</p>}
+                {q.explanation && <p className="mt-1 text-sm text-muted">{q.explanation}</p>}
+                {q.reference && <p className="mt-1 text-xs text-muted">{q.reference}</p>}
               </div>
             );
           })}

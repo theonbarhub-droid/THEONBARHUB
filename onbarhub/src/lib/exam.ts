@@ -16,8 +16,12 @@ export interface ExamQuestion {
   answer: number;
   /** Why the answer is right (shown in review). Optional but recommended. */
   explanation?: string;
-  /** Where to read more, e.g. "Real Estate materials, ch. 4". Optional. */
+  /** Where to read more, e.g. "LSO p. 50". Optional. */
   reference?: string;
+  /** A short memory hook / mnemonic for the rule. Optional. */
+  hook?: string;
+  /** Human-readable chapter label, e.g. "ch 6 · Conflicts of interest". Optional. */
+  chapterLabel?: string;
 }
 
 export interface Mock {
