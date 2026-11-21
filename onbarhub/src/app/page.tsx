@@ -67,15 +67,14 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="mt-5 grid gap-5 sm:grid-cols-2">
+        <div className="mt-5 grid gap-5 sm:grid-cols-3">
           <Link
             href="/tools/readiness"
             className="rounded-2xl border border-line bg-card p-6 no-underline text-ink transition hover:border-brand"
           >
             <p className="font-serif text-xl font-semibold">Why are you struggling?</p>
             <p className="text-muted mt-2 text-sm leading-relaxed">
-              A two-minute check that finds whether your real problem is the material, finding it, the clock, or
-              technique, and what to do about each.
+              A two-minute check that finds whether your problem is the material, finding it, the clock, or technique.
             </p>
           </Link>
           <Link
@@ -85,6 +84,15 @@ export default function Home() {
             <p className="font-serif text-xl font-semibold">Study planner</p>
             <p className="text-muted mt-2 text-sm leading-relaxed">
               Your exam date and weekly hours become a realistic plan across subjects, practice and indexing.
+            </p>
+          </Link>
+          <Link
+            href="/tools/flashcards"
+            className="rounded-2xl border border-line bg-card p-6 no-underline text-ink transition hover:border-brand"
+          >
+            <p className="font-serif text-xl font-semibold">Flashcards</p>
+            <p className="text-muted mt-2 text-sm leading-relaxed">
+              Rapid, untimed recall of the rules, memory hooks and LSO references, subject by subject.
             </p>
           </Link>
         </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "./AuthProvider";
 import AuthForm from "./AuthForm";
@@ -47,6 +47,18 @@ export default function AccountClient() {
       });
   }, [user]);
 
+  const progress = useMemo(() => {
+    const scored = [...rows]
+      .filter((r) => r.pct != null)
+      .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+    if (scored.length < 2) return null;
+    const pts = scored.map((r) => r.pct as number);
+    const best = Math.max(...pts);
+    const first = pts[0];
+    const latest = pts[pts.length - 1];
+    return { pts, best, first, latest, change: latest - first };
+  }, [rows]);
+
   if (loading) return <p className="text-muted">Loading...</p>;
 
   if (!user) {
@@ -71,9 +83,35 @@ export default function AccountClient() {
         </button>
       </div>
 
+      {progress && (
+        <section className="mt-8 rounded-2xl border border-line bg-card p-6">
+          <h2 className="font-serif text-lg font-semibold mb-4">Your progress</h2>
+          <div className="grid gap-4 sm:grid-cols-[1fr_auto] sm:items-center">
+            <Sparkline points={progress.pts} />
+            <dl className="grid grid-cols-3 gap-5 text-center sm:text-right">
+              <div>
+                <dt className="text-xs text-muted">Latest</dt>
+                <dd className="font-serif text-2xl font-semibold tabular-nums">{progress.latest}%</dd>
+              </div>
+              <div>
+                <dt className="text-xs text-muted">Best</dt>
+                <dd className="font-serif text-2xl font-semibold tabular-nums">{progress.best}%</dd>
+              </div>
+              <div>
+                <dt className="text-xs text-muted">Change</dt>
+                <dd className={`font-serif text-2xl font-semibold tabular-nums ${progress.change >= 0 ? "text-brand" : "text-accent"}`}>
+                  {progress.change >= 0 ? "+" : ""}
+                  {progress.change}
+                </dd>
+              </div>
+            </dl>
+          </div>
+        </section>
+      )}
+
       <section className="mt-8">
         <div className="flex items-baseline justify-between">
-          <h2 className="font-bold text-lg">Your attempts</h2>
+          <h2 className="font-serif text-lg font-semibold">Your attempts</h2>
           <Link href="/tools/practice-exam" className="text-sm">
             New practice
           </Link>
@@ -124,5 +162,26 @@ export default function AccountClient() {
         )}
       </section>
     </div>
+  );
+}
+
+function Sparkline({ points }: { points: number[] }) {
+  const W = 300;
+  const H = 64;
+  const n = points.length;
+  const coords = points.map((p, i) => {
+    const x = n === 1 ? W / 2 : (i / (n - 1)) * (W - 8) + 4;
+    const y = H - 6 - (Math.max(0, Math.min(100, p)) / 100) * (H - 12);
+    return [x, y] as const;
+  });
+  const path = coords.map(([x, y], i) => `${i === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`).join(" ");
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-16" preserveAspectRatio="none" role="img" aria-label="Score over time">
+      <line x1="4" y1={H - 6} x2={W - 4} y2={H - 6} stroke="var(--line)" strokeWidth="1" />
+      <path d={path} fill="none" stroke="var(--brand)" strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
+      {coords.map(([x, y], i) => (
+        <circle key={i} cx={x} cy={y} r="3" fill="var(--brand)" />
+      ))}
+    </svg>
   );
 }

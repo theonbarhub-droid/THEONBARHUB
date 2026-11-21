@@ -12,6 +12,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${site.url}/tools/practice-exam`, changeFrequency: "weekly", priority: 0.9 },
     { url: `${site.url}/tools/readiness`, changeFrequency: "monthly", priority: 0.8 },
     { url: `${site.url}/tools/study-planner`, changeFrequency: "monthly", priority: 0.8 },
+    { url: `${site.url}/tools/flashcards`, changeFrequency: "monthly", priority: 0.8 },
     { url: `${site.url}/tools/results-tracker`, changeFrequency: "weekly", priority: 0.9 },
     { url: `${site.url}/blog`, changeFrequency: "weekly", priority: 0.8 },
     { url: `${site.url}/about`, changeFrequency: "monthly", priority: 0.4 },
