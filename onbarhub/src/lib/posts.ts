@@ -29,6 +29,18 @@ function iso(v: unknown): string {
   return String(v);
 }
 
+// Accept either {q,a} or {question,answer} in front-matter.
+function normFaq(v: unknown): { q: string; a: string }[] | undefined {
+  if (!Array.isArray(v)) return undefined;
+  const out = v
+    .map((f) => ({
+      q: String((f?.q ?? f?.question ?? "")).trim(),
+      a: String((f?.a ?? f?.answer ?? "")).trim(),
+    }))
+    .filter((f) => f.q && f.a);
+  return out.length ? out : undefined;
+}
+
 function readFile(slug: string) {
   const raw = fs.readFileSync(path.join(POSTS_DIR, `${slug}.md`), "utf8");
   return matter(raw);
@@ -56,7 +68,7 @@ export function getAllPosts(): PostMeta[] {
         category: data.category ?? "Guides",
         exam: data.exam,
         readingMinutes: Math.max(1, Math.round(readingTime(content).minutes)),
-        faq: data.faq,
+        faq: normFaq(data.faq),
       } as PostMeta;
     })
     .filter((p): p is PostMeta => p !== null)
@@ -77,7 +89,7 @@ export async function getPost(slug: string): Promise<Post | null> {
     category: data.category ?? "Guides",
     exam: data.exam,
     readingMinutes: Math.max(1, Math.round(readingTime(content).minutes)),
-    faq: data.faq,
+    faq: normFaq(data.faq),
     html: processed.toString(),
   };
 }
