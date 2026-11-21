@@ -1,7 +1,7 @@
 export const site = {
   name: "The OnBar Hub",
   shortName: "OnBar Hub",
-  url: "https://onbarhub.com",
+  url: "https://theonbarhub.com",
   tagline: "Ontario bar exam prep, built on what candidates actually face.",
   description:
     "Free tools, plain-English guides and smart practice for the Law Society of Ontario Barrister and Solicitor licensing exams.",
