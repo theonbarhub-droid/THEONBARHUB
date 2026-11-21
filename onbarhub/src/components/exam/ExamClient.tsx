@@ -11,6 +11,7 @@ import {
 } from "@/lib/exam";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { getSupabase } from "@/lib/supabase";
+import { track } from "@/lib/analytics";
 import AttemptAnalysis from "@/components/exam/AttemptAnalysis";
 
 type Phase = "setup" | "running" | "review";
@@ -114,6 +115,7 @@ export default function ExamClient({ mocks }: { mocks: Mock[] }) {
     setElapsed(0);
     setRemaining(mock.timeLimitMinutes * 60);
     enterRef.current = Date.now();
+    track("exam_start", { mockId: mock.id, timed });
     setPhase("running");
   }
 
@@ -390,6 +392,7 @@ function Review({
       totalTimeSec,
       timed,
     });
+    track("exam_finish", { mockId: mock.id, pct: score.pct, total: score.total });
     const sb = getSupabase();
     if (sb && user) {
       sb.from("attempts")

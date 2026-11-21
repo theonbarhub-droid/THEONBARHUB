@@ -4,6 +4,7 @@ import "./globals.css";
 import { site } from "@/lib/site";
 import AuthProvider from "@/components/auth/AuthProvider";
 import NavAuth from "@/components/auth/NavAuth";
+import Analytics from "@/components/Analytics";
 
 export const metadata: Metadata = {
   metadataBase: new URL(site.url),
@@ -40,6 +41,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       </head>
       <body className="min-h-full flex flex-col">
         <AuthProvider>
+        <Analytics />
         <header className="border-b border-line bg-paper/90 backdrop-blur sticky top-0 z-30">
           <div className="mx-auto max-w-5xl px-5 h-16 flex items-center justify-between">
             <Link href="/" className="font-serif text-xl font-semibold text-ink no-underline whitespace-nowrap tracking-tight">
