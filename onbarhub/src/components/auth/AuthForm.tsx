@@ -24,7 +24,13 @@ export default function AuthForm() {
     setMessage("");
     try {
       if (mode === "signup") {
-        const { data, error } = await sb.auth.signUp({ email, password });
+        const emailRedirectTo =
+          typeof window !== "undefined" ? `${window.location.origin}/account` : undefined;
+        const { data, error } = await sb.auth.signUp({
+          email,
+          password,
+          options: { emailRedirectTo },
+        });
         if (error) throw error;
         // If email confirmation is on, there is no active session yet.
         if (!data.session) {
