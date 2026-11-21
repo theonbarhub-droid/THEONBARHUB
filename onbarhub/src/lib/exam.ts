@@ -22,6 +22,12 @@ export interface ExamQuestion {
   hook?: string;
   /** Human-readable chapter label, e.g. "ch 6 · Conflicts of interest". Optional. */
   chapterLabel?: string;
+  /**
+   * One short line per option, in the same order as `options`, saying why that
+   * choice is right or wrong. When present, shown inline under each option in
+   * the full reasoning. Optional; falls back to `explanation` prose.
+   */
+  optionRationales?: string[];
 }
 
 export interface Mock {

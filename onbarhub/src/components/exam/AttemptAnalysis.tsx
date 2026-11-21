@@ -1,8 +1,9 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
   type Mock,
+  type ExamQuestion,
   type AnswerChange,
   analyze,
   formatClock,
@@ -186,58 +187,89 @@ export default function AttemptAnalysis({
         <section className="mt-12">
           <h2 className="text-xl font-semibold mb-4">Review every question</h2>
           <div className="grid gap-5">
-            {mock.questions.map((q, i) => {
-              const chosen = answers[q.id];
-              const correct = chosen === q.answer;
-              const unanswered = chosen === undefined;
-              return (
-                <article key={q.id} className="rounded-2xl border border-line bg-card p-5 sm:p-6">
-                  <div className="flex items-center justify-between gap-3">
-                    <span className="font-serif italic text-accent text-sm">{q.subject}</span>
-                    <span
-                      className={`text-xs font-semibold rounded-full px-2.5 py-1 ${
-                        unanswered
-                          ? "bg-wash text-muted"
-                          : correct
-                            ? "bg-brand/10 text-brand"
-                            : "bg-accent/15 text-accent"
-                      }`}
-                    >
-                      {unanswered ? "Skipped" : correct ? "Correct" : "Incorrect"}
-                      {flags[q.id] ? ", flagged" : ""}
-                    </span>
-                  </div>
-                  <p className="mt-2.5 font-medium text-[1.05rem] leading-relaxed">
-                    <span className="font-serif font-semibold">{i + 1}.</span> {q.stem}
-                  </p>
-                  <div className="mt-4 grid gap-2 text-sm">
-                    {q.options.map((opt, oi) => {
-                      const isAnswer = oi === q.answer;
-                      const isChosen = oi === chosen;
-                      let cls = "border-line";
-                      if (isAnswer) cls = "border-brand bg-brand/5";
-                      else if (isChosen) cls = "border-accent bg-accent/10";
-                      return (
-                        <div key={oi} className={`rounded-lg border px-3.5 py-2.5 flex gap-2.5 ${cls}`}>
-                          <span className="font-serif font-semibold shrink-0">{String.fromCharCode(65 + oi)}.</span>
-                          <span>{opt}</span>
-                          {isAnswer && <span className="ml-auto text-xs font-semibold text-brand shrink-0">Correct</span>}
-                          {isChosen && !isAnswer && (
-                            <span className="ml-auto text-xs font-semibold text-accent shrink-0">Your answer</span>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                  {q.hook && <p className="mt-4 font-serif italic text-brand">{q.hook}</p>}
-                  {q.explanation && <p className="mt-2 text-sm text-muted leading-relaxed">{q.explanation}</p>}
-                  {q.reference && <p className="mt-2 text-xs text-muted">{q.reference}</p>}
-                </article>
-              );
-            })}
+            {mock.questions.map((q, i) => (
+              <QuestionReview key={q.id} q={q} index={i} chosen={answers[q.id]} flagged={Boolean(flags[q.id])} />
+            ))}
           </div>
         </section>
       )}
     </div>
+  );
+}
+
+function QuestionReview({
+  q,
+  index,
+  chosen,
+  flagged,
+}: {
+  q: ExamQuestion;
+  index: number;
+  chosen: number | undefined;
+  flagged: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const correct = chosen === q.answer;
+  const unanswered = chosen === undefined;
+  const rationales = q.optionRationales;
+  const hasFull = Boolean(q.explanation || (rationales && rationales.length > 0));
+
+  return (
+    <article className="rounded-2xl border border-line bg-card p-5 sm:p-6">
+      <div className="flex items-center justify-between gap-3">
+        <span className="font-serif italic text-accent text-sm">{q.subject}</span>
+        <span
+          className={`text-xs font-semibold rounded-full px-2.5 py-1 ${
+            unanswered ? "bg-wash text-muted" : correct ? "bg-brand/10 text-brand" : "bg-accent/15 text-accent"
+          }`}
+        >
+          {unanswered ? "Skipped" : correct ? "Correct" : "Incorrect"}
+          {flagged ? ", flagged" : ""}
+        </span>
+      </div>
+
+      <p className="mt-2.5 font-medium text-[1.05rem] leading-relaxed">
+        <span className="font-serif font-semibold">{index + 1}.</span> {q.stem}
+      </p>
+
+      <div className="mt-4 grid gap-2 text-sm">
+        {q.options.map((opt, oi) => {
+          const isAnswer = oi === q.answer;
+          const isChosen = oi === chosen;
+          let cls = "border-line";
+          if (isAnswer) cls = "border-brand bg-brand/5";
+          else if (isChosen) cls = "border-accent bg-accent/10";
+          return (
+            <div key={oi} className={`rounded-lg border px-3.5 py-2.5 ${cls}`}>
+              <div className="flex gap-2.5">
+                <span className="font-serif font-semibold shrink-0">{String.fromCharCode(65 + oi)}.</span>
+                <span>{opt}</span>
+                {isAnswer && <span className="ml-auto text-xs font-semibold text-brand shrink-0">Correct</span>}
+                {isChosen && !isAnswer && (
+                  <span className="ml-auto text-xs font-semibold text-accent shrink-0">Your answer</span>
+                )}
+              </div>
+              {open && rationales?.[oi] && (
+                <p className={`mt-1.5 pl-6 text-xs leading-relaxed ${isAnswer ? "text-brand" : "text-muted"}`}>
+                  {rationales[oi]}
+                </p>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {q.hook && <p className="mt-4 font-serif italic text-brand">{q.hook}</p>}
+
+      {hasFull && (
+        <div className="mt-3">
+          <button onClick={() => setOpen((o) => !o)} className="text-sm font-semibold text-brand">
+            {open ? "Hide full reasoning" : "Show full reasoning, answer by answer"}
+          </button>
+          {open && q.explanation && <p className="mt-2.5 text-sm text-muted leading-relaxed">{q.explanation}</p>}
+          {open && q.reference && <p className="mt-2 text-xs text-muted">{q.reference}</p>}
+        </div>
+      )}
+    </article>
   );
 }
