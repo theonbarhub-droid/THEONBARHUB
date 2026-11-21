@@ -5,6 +5,8 @@ import Link from "next/link";
 import {
   type Mock,
   type ScoreResult,
+  type AnswerChange,
+  analyze,
   formatClock,
   scoreMock,
 } from "@/lib/exam";
@@ -59,6 +61,7 @@ export default function ExamClient({ mocks }: { mocks: Mock[] }) {
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [flags, setFlags] = useState<Record<string, boolean>>({});
   const [times, setTimes] = useState<Record<string, number>>({}); // ms per question
+  const [changes, setChanges] = useState<AnswerChange[]>([]);
   const [remaining, setRemaining] = useState(0); // seconds
   const [elapsed, setElapsed] = useState(0); // seconds, counts up
   const enterRef = useRef<number>(0);
@@ -107,6 +110,7 @@ export default function ExamClient({ mocks }: { mocks: Mock[] }) {
     setAnswers({});
     setFlags({});
     setTimes({});
+    setChanges([]);
     setElapsed(0);
     setRemaining(mock.timeLimitMinutes * 60);
     enterRef.current = Date.now();
@@ -121,6 +125,10 @@ export default function ExamClient({ mocks }: { mocks: Mock[] }) {
 
   function choose(optIndex: number) {
     if (!q) return;
+    const prev = answers[q.id];
+    if (prev !== undefined && prev !== optIndex) {
+      setChanges((cs) => [...cs, { id: q.id, from: prev, to: optIndex }]);
+    }
     setAnswers((a) => ({ ...a, [q.id]: optIndex }));
   }
 
@@ -335,7 +343,7 @@ export default function ExamClient({ mocks }: { mocks: Mock[] }) {
 
   // ---- REVIEW ----
   if (phase === "review" && mock) {
-    return <Review mock={mock} answers={answers} flags={flags} times={times} elapsed={elapsed} timed={timed} onRestart={() => setPhase("setup")} onRetake={start} />;
+    return <Review mock={mock} answers={answers} flags={flags} times={times} changes={changes} elapsed={elapsed} timed={timed} onRestart={() => setPhase("setup")} onRetake={start} />;
   }
 
   return null;
@@ -346,6 +354,7 @@ function Review({
   answers,
   flags,
   times,
+  changes,
   elapsed,
   timed,
   onRestart,
@@ -355,6 +364,7 @@ function Review({
   answers: Record<string, number>;
   flags: Record<string, boolean>;
   times: Record<string, number>;
+  changes: AnswerChange[];
   elapsed: number;
   timed: boolean;
   onRestart: () => void;
@@ -362,6 +372,7 @@ function Review({
 }) {
   const { user } = useAuth();
   const score: ScoreResult = useMemo(() => scoreMock(mock, answers), [mock, answers]);
+  const deep = useMemo(() => analyze(mock, answers, times, changes), [mock, answers, times, changes]);
   const totalMs = Object.values(times).reduce((a, b) => a + b, 0);
   const totalTimeSec = Math.round(totalMs / 1000) || elapsed;
   const avgSec = mock.questions.length ? totalTimeSec / mock.questions.length : 0;
@@ -393,20 +404,11 @@ function Review({
           total: score.total,
           total_time_sec: totalTimeSec,
           timed,
-          detail: { answers, times, flags },
+          detail: { answers, times, flags, changes },
         })
         .then(() => {});
     }
-  }, [mock, score, totalTimeSec, timed, user, answers, times, flags]);
-
-  const slowest = useMemo(
-    () =>
-      mock.questions
-        .map((q, i) => ({ n: i + 1, subject: q.subject, ms: times[q.id] ?? 0 }))
-        .sort((a, b) => b.ms - a.ms)
-        .slice(0, 3),
-    [mock, times],
-  );
+  }, [mock, score, totalTimeSec, timed, user, answers, times, flags, changes]);
 
   return (
     <div>
@@ -440,19 +442,79 @@ function Review({
         </div>
       </section>
 
-      {slowest.some((s) => s.ms > 0) && (
+      <section className="mt-8">
+        <h2 className="font-bold text-lg mb-3">Exam diagnostics</h2>
+        <div className="grid gap-3 sm:grid-cols-3">
+          <div className="rounded-xl border border-line p-4">
+            <p className="text-xs text-muted uppercase tracking-wide">Pace</p>
+            <p className="text-2xl font-bold mt-1 tabular-nums">{deep.overBudgetCount}</p>
+            <p className="text-sm text-muted mt-1">
+              questions over the {deep.perQuestionBudgetSec}s budget
+              {deep.overBudgetSec > 0 && <>, costing {formatClock(deep.overBudgetSec)}</>}
+            </p>
+          </div>
+          <div className="rounded-xl border border-line p-4">
+            <p className="text-xs text-muted uppercase tracking-wide">Answer changes</p>
+            <p className="text-2xl font-bold mt-1 tabular-nums">
+              {deep.changeWrongToRight + deep.changeRightToWrong + deep.changeWrongToWrong}
+            </p>
+            <p className="text-sm text-muted mt-1">
+              {deep.changeWrongToRight} wrong to right, {deep.changeRightToWrong} right to wrong
+            </p>
+          </div>
+          {deep.notExcept ? (
+            <div className="rounded-xl border border-line p-4">
+              <p className="text-xs text-muted uppercase tracking-wide">NOT / EXCEPT</p>
+              <p className="text-2xl font-bold mt-1 tabular-nums">
+                {deep.notExcept.correct}/{deep.notExcept.total}
+              </p>
+              <p className="text-sm text-muted mt-1">on reverse-logic questions</p>
+            </div>
+          ) : (
+            <div className="rounded-xl border border-line p-4">
+              <p className="text-xs text-muted uppercase tracking-wide">Avg / question</p>
+              <p className="text-2xl font-bold mt-1 tabular-nums">{Math.round(avgSec)}s</p>
+              <p className="text-sm text-muted mt-1">budget was {deep.perQuestionBudgetSec}s</p>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {deep.byChapter.length > 1 && (
         <section className="mt-8">
-          <h2 className="font-bold text-lg mb-2">Where your time went</h2>
-          <p className="text-sm text-muted mb-3">
-            The questions that took longest. Pace is half the solicitor exam, so watch for subjects that keep slowing you down.
-          </p>
+          <h2 className="font-bold text-lg mb-1">By chapter, weakest first</h2>
+          <p className="text-sm text-muted mb-3">Where to reread first. Low score and high time together is the clearest signal.</p>
           <div className="grid gap-2">
-            {slowest.map((s) => (
-              <div key={s.n} className="flex justify-between rounded-lg border border-line px-4 py-2 text-sm">
-                <span>
-                  Q{s.n} · <span className="text-muted">{s.subject}</span>
+            {deep.byChapter.map((c) => (
+              <div key={c.label} className="flex items-center justify-between rounded-lg border border-line px-4 py-2 text-sm gap-3">
+                <span className="truncate">{c.label}</span>
+                <span className="flex items-center gap-4 shrink-0 tabular-nums">
+                  <span className="text-muted">{c.avgSec}s avg</span>
+                  <span className={`font-bold ${c.pct >= 60 ? "text-ink" : "text-accent"}`}>
+                    {c.correct}/{c.total} · {c.pct}%
+                  </span>
                 </span>
-                <span className="font-semibold tabular-nums">{formatClock(Math.round(s.ms / 1000))}</span>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {deep.timeSinks.some((s) => s.sec > 0) && (
+        <section className="mt-8">
+          <h2 className="font-bold text-lg mb-2">Biggest time sinks</h2>
+          <div className="grid gap-2">
+            {deep.timeSinks.filter((s) => s.sec > 0).map((s) => (
+              <div key={s.n} className="flex justify-between items-center rounded-lg border border-line px-4 py-2 text-sm gap-3">
+                <span className="truncate">
+                  Q{s.n} · <span className="text-muted">{s.label}</span>
+                </span>
+                <span className="flex items-center gap-3 shrink-0">
+                  <span className={`text-xs font-semibold ${s.correct ? "text-green-700" : s.answered ? "text-red-700" : "text-muted"}`}>
+                    {s.correct ? "right" : s.answered ? "wrong" : "blank"}
+                  </span>
+                  <span className="font-semibold tabular-nums">{formatClock(s.sec)}</span>
+                </span>
               </div>
             ))}
           </div>

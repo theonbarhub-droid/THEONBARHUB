@@ -86,6 +86,125 @@ export function scoreMock(mock: Mock, answers: Record<string, number>): ScoreRes
   };
 }
 
+export interface AnswerChange {
+  id: string;
+  from: number;
+  to: number;
+}
+
+export interface ChapterScore {
+  label: string;
+  correct: number;
+  total: number;
+  pct: number;
+  avgSec: number;
+}
+
+export interface TimeSink {
+  n: number;
+  label: string;
+  sec: number;
+  correct: boolean;
+  answered: boolean;
+}
+
+export interface DeepAnalysis {
+  perQuestionBudgetSec: number;
+  overBudgetCount: number;
+  overBudgetSec: number;
+  changeWrongToRight: number;
+  changeRightToWrong: number;
+  changeWrongToWrong: number;
+  notExcept: { correct: number; total: number } | null;
+  byChapter: ChapterScore[];
+  timeSinks: TimeSink[];
+}
+
+const NOT_EXCEPT = /\b(NOT|EXCEPT)\b/;
+
+/** Build the per-attempt deep analysis. `times` is per-question milliseconds. */
+export function analyze(
+  mock: Mock,
+  answers: Record<string, number>,
+  times: Record<string, number>,
+  changes: AnswerChange[],
+): DeepAnalysis {
+  const n = mock.questions.length;
+  const perQuestionBudgetSec = n ? Math.round((mock.timeLimitMinutes * 60) / n) : 0;
+
+  let overBudgetCount = 0;
+  let overBudgetSec = 0;
+  for (const q of mock.questions) {
+    const sec = (times[q.id] ?? 0) / 1000;
+    if (perQuestionBudgetSec > 0 && sec > perQuestionBudgetSec) {
+      overBudgetCount += 1;
+      overBudgetSec += sec - perQuestionBudgetSec;
+    }
+  }
+
+  let wr = 0,
+    rw = 0,
+    ww = 0;
+  for (const c of changes) {
+    const ans = mock.questions.find((q) => q.id === c.id)?.answer;
+    if (ans === undefined) continue;
+    const fromRight = c.from === ans;
+    const toRight = c.to === ans;
+    if (!fromRight && toRight) wr += 1;
+    else if (fromRight && !toRight) rw += 1;
+    else if (!fromRight && !toRight) ww += 1;
+  }
+
+  // NOT / EXCEPT questions
+  const ne = mock.questions.filter((q) => NOT_EXCEPT.test(q.stem));
+  const notExcept = ne.length
+    ? { correct: ne.filter((q) => answers[q.id] === q.answer).length, total: ne.length }
+    : null;
+
+  // by chapter (fall back to subject when no chapter label)
+  const chap = new Map<string, { correct: number; total: number; ms: number }>();
+  for (const q of mock.questions) {
+    const key = q.chapterLabel || q.subject;
+    const b = chap.get(key) ?? { correct: 0, total: 0, ms: 0 };
+    b.total += 1;
+    b.ms += times[q.id] ?? 0;
+    if (answers[q.id] === q.answer) b.correct += 1;
+    chap.set(key, b);
+  }
+  const byChapter: ChapterScore[] = [...chap.entries()]
+    .map(([label, b]) => ({
+      label,
+      correct: b.correct,
+      total: b.total,
+      pct: b.total ? Math.round((b.correct / b.total) * 100) : 0,
+      avgSec: b.total ? Math.round(b.ms / 1000 / b.total) : 0,
+    }))
+    .sort((a, b) => a.pct - b.pct);
+
+  const timeSinks: TimeSink[] = mock.questions
+    .map((q, i) => ({
+      n: i + 1,
+      label: q.chapterLabel || q.subject,
+      sec: Math.round((times[q.id] ?? 0) / 1000),
+      correct: answers[q.id] === q.answer,
+      answered: answers[q.id] !== undefined,
+    }))
+    .sort((a, b) => b.sec - a.sec)
+    .slice(0, 5);
+
+  return {
+    perQuestionBudgetSec,
+    overBudgetCount,
+    overBudgetSec: Math.round(overBudgetSec),
+    changeWrongToRight: wr,
+    changeRightToWrong: rw,
+    changeWrongToWrong: ww,
+    notExcept,
+    byChapter,
+    timeSinks,
+  };
+}
+
 export function formatClock(totalSeconds: number): string {
   const s = Math.max(0, Math.round(totalSeconds));
   const h = Math.floor(s / 3600);
