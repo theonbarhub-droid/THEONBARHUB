@@ -5,20 +5,32 @@ import Link from "next/link";
 import { useAuth } from "./AuthProvider";
 import AuthForm from "./AuthForm";
 import { getSupabase } from "@/lib/supabase";
-import { formatClock } from "@/lib/exam";
+import { formatClock, type AnswerChange } from "@/lib/exam";
+import { getMock } from "@/data/mocks";
+import AttemptAnalysis from "@/components/exam/AttemptAnalysis";
+
+interface AttemptDetail {
+  answers?: Record<string, number>;
+  times?: Record<string, number>;
+  flags?: Record<string, boolean>;
+  changes?: AnswerChange[];
+}
 
 interface AttemptRow {
   id: string;
+  mock_id: string | null;
   mock_title: string | null;
   pct: number | null;
   total_time_sec: number | null;
   created_at: string;
+  detail: AttemptDetail | null;
 }
 
 export default function AccountClient() {
   const { user, loading, signOut } = useAuth();
   const [rows, setRows] = useState<AttemptRow[]>([]);
   const [rowsLoading, setRowsLoading] = useState(false);
+  const [openId, setOpenId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -26,7 +38,7 @@ export default function AccountClient() {
     if (!sb) return;
     setRowsLoading(true);
     sb.from("attempts")
-      .select("id,mock_title,pct,total_time_sec,created_at")
+      .select("id,mock_id,mock_title,pct,total_time_sec,created_at,detail")
       .order("created_at", { ascending: false })
       .limit(50)
       .then(({ data }) => {
@@ -74,19 +86,40 @@ export default function AccountClient() {
           </p>
         ) : (
           <div className="mt-3 grid gap-2">
-            {rows.map((r) => (
-              <div
-                key={r.id}
-                className="flex items-center justify-between rounded-lg border border-line px-4 py-2.5 text-sm"
-              >
-                <span className="truncate">{r.mock_title ?? "Practice"}</span>
-                <span className="flex items-center gap-4 shrink-0">
-                  <span className="text-muted">{new Date(r.created_at).toLocaleDateString()}</span>
-                  {r.total_time_sec != null && <span className="text-muted">{formatClock(r.total_time_sec)}</span>}
-                  <span className="font-bold tabular-nums">{r.pct ?? 0}%</span>
-                </span>
-              </div>
-            ))}
+            {rows.map((r) => {
+              const open = openId === r.id;
+              const mock = r.mock_id ? getMock(r.mock_id) : undefined;
+              const canOpen = Boolean(mock && r.detail?.answers);
+              return (
+                <div key={r.id} className="rounded-lg border border-line overflow-hidden">
+                  <button
+                    onClick={() => canOpen && setOpenId(open ? null : r.id)}
+                    className={`w-full flex items-center justify-between px-4 py-2.5 text-sm text-left ${canOpen ? "hover:bg-wash" : "cursor-default"}`}
+                  >
+                    <span className="truncate flex items-center gap-2">
+                      {canOpen && <span className="text-muted">{open ? "▾" : "▸"}</span>}
+                      {r.mock_title ?? "Practice"}
+                    </span>
+                    <span className="flex items-center gap-4 shrink-0">
+                      <span className="text-muted">{new Date(r.created_at).toLocaleDateString()}</span>
+                      {r.total_time_sec != null && <span className="text-muted">{formatClock(r.total_time_sec)}</span>}
+                      <span className="font-bold tabular-nums">{r.pct ?? 0}%</span>
+                    </span>
+                  </button>
+                  {open && mock && r.detail?.answers && (
+                    <div className="border-t border-line p-4 bg-paper">
+                      <AttemptAnalysis
+                        mock={mock}
+                        answers={r.detail.answers}
+                        times={r.detail.times ?? {}}
+                        changes={r.detail.changes ?? []}
+                        flags={r.detail.flags ?? {}}
+                      />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
       </section>
