@@ -20,6 +20,7 @@ export const metadata: Metadata = {
 
 const nav = [
   { href: "/blog", label: "Guides" },
+  { href: "/tools/practice-exam", label: "Practice" },
   { href: "/tools/results-tracker", label: "Results & dates" },
   { href: "/about", label: "About" },
 ];
