@@ -13,12 +13,13 @@ export default function PracticeExamPage() {
   const solicitorMocks = mocks.filter((m) => m.exam === "solicitor");
 
   return (
-    <div className="mx-auto max-w-3xl px-5 py-10">
-      <p className="text-sm font-semibold text-brand uppercase tracking-wide">Free tool</p>
-      <h1 className="text-3xl sm:text-4xl font-bold mt-1">Solicitor practice exam</h1>
-      <p className="mt-3 text-muted">
-        Run a timed, exam-style mock. Flag questions, jump around with the palette, then get a score broken down by
-        subject and a read on where your time went. Attempts save in your browser so you can watch your progress.
+    <div className="mx-auto max-w-3xl px-5 py-12">
+      <p className="font-serif italic text-accent">Free tool</p>
+      <h1 className="font-serif text-3xl sm:text-4xl font-semibold mt-1">Solicitor practice exam</h1>
+      <p className="mt-4 text-muted leading-relaxed max-w-2xl">
+        A timed, exam-style mock. Flag questions and move around with the palette, then get a score broken down by
+        subject and chapter, a read on where your time went, and the answer changes that cost you. Sign in and every
+        attempt is saved to reopen later.
       </p>
 
       <div className="mt-8">

@@ -2,73 +2,83 @@ import Link from "next/link";
 import Waitlist from "@/components/Waitlist";
 import { getAllPosts } from "@/lib/posts";
 
-// Holding home page. The full landing page comes later; this one earns search
-// traffic and email sign-ups while the product is built.
 export default function Home() {
   const posts = getAllPosts().slice(0, 4);
 
   return (
     <div>
-      <section className="bg-wash border-b border-line">
-        <div className="mx-auto max-w-5xl px-5 py-16">
-          <p className="text-sm font-semibold text-brand uppercase tracking-wide">Ontario bar exam prep</p>
-          <h1 className="text-4xl sm:text-5xl font-bold mt-2 max-w-3xl leading-tight">
+      <section className="bg-brand-ink text-paper">
+        <div className="mx-auto max-w-5xl px-5 py-20 sm:py-28">
+          <p className="font-serif italic text-lg text-accent-soft mb-4">Ontario bar exam preparation</p>
+          <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-semibold max-w-4xl leading-[1.08]">
             Pass the LSO licensing exams with prep built on what candidates actually face.
           </h1>
-          <p className="mt-4 text-lg text-muted max-w-2xl">
-            Free tools, a timed practice exam and plain-English guides now. The full Solicitor and Barrister study
-            package is coming, for one simple price per sitting.
+          <p className="mt-6 text-lg text-paper/75 max-w-2xl leading-relaxed">
+            Free tools, a timed practice exam with real diagnostics, and plain-English guides. The full Solicitor and
+            Barrister study package is coming, for one simple price per sitting.
           </p>
-          <div className="mt-8">
+          <div className="mt-9">
             <Waitlist source="home-hero" />
           </div>
         </div>
       </section>
 
-      <section className="mx-auto max-w-5xl px-5 py-12">
-        <h2 className="text-2xl font-bold">Free tools</h2>
-        <div className="mt-5 grid gap-4 sm:grid-cols-2">
-          <Link
-            href="/tools/results-tracker"
-            className="rounded-xl border border-line p-6 no-underline text-ink hover:border-brand"
-          >
-            <p className="text-lg font-bold">Results date tracker</p>
-            <p className="text-muted mt-1">
-              Estimated release windows for the November 2026 Barrister and Solicitor exams, plus every 2027 deadline.
-            </p>
-          </Link>
+      <section className="mx-auto max-w-5xl px-5 py-16">
+        <h2 className="text-2xl sm:text-3xl font-semibold">Start practising</h2>
+        <div className="mt-6 grid gap-5 lg:grid-cols-5">
           <Link
             href="/tools/practice-exam"
-            className="rounded-xl border border-line p-6 no-underline text-ink hover:border-brand"
+            className="lg:col-span-3 group rounded-2xl border border-line bg-card p-7 no-underline text-ink transition hover:border-brand"
           >
-            <p className="text-lg font-bold">
-              Solicitor practice exam <span className="text-xs align-middle text-accent font-semibold">New</span>
+            <p className="font-serif italic text-accent">Practice exam</p>
+            <p className="font-serif text-2xl font-semibold mt-2">
+              A timed mock that tells you why you missed marks
             </p>
-            <p className="text-muted mt-1">
-              A free timed, exam-style mock with a question palette, per-question timing and a subject-by-subject score
-              breakdown.
+            <p className="text-muted mt-3 leading-relaxed">
+              Real exam-style questions with a question palette and per-question timing. When you finish, you get a
+              breakdown by subject and chapter, where your time went, and the answer changes that cost you. Original
+              questions, written for this exam.
             </p>
+            <span className="inline-block mt-5 font-semibold text-brand group-hover:underline">Take a practice exam</span>
           </Link>
+
+          <div className="lg:col-span-2 grid gap-5">
+            <Link
+              href="/tools/results-tracker"
+              className="rounded-2xl border border-line bg-card p-6 no-underline text-ink transition hover:border-brand"
+            >
+              <p className="font-serif text-xl font-semibold">Results date tracker</p>
+              <p className="text-muted mt-2 text-sm leading-relaxed">
+                Estimated release windows for the November 2026 exams, plus every 2027 date and deadline.
+              </p>
+            </Link>
+            <Link
+              href="/account"
+              className="rounded-2xl border border-line bg-wash p-6 no-underline text-ink transition hover:border-brand"
+            >
+              <p className="font-serif text-xl font-semibold">Your progress</p>
+              <p className="text-muted mt-2 text-sm leading-relaxed">
+                Create a free account to save every attempt and reopen its full analysis on any device.
+              </p>
+            </Link>
+          </div>
         </div>
       </section>
 
-      <section className="mx-auto max-w-5xl px-5 pb-12">
-        <div className="flex items-baseline justify-between">
-          <h2 className="text-2xl font-bold">Latest guides</h2>
-          <Link href="/blog" className="text-sm">
+      <section className="mx-auto max-w-5xl px-5 pb-20">
+        <div className="flex items-baseline justify-between border-b border-line pb-3">
+          <h2 className="text-2xl sm:text-3xl font-semibold">Latest guides</h2>
+          <Link href="/blog" className="text-sm font-semibold">
             All guides
           </Link>
         </div>
-        <ul className="mt-5 grid gap-4 sm:grid-cols-2">
+        <ul className="mt-6 grid gap-x-8 gap-y-6 sm:grid-cols-2">
           {posts.map((p) => (
-            <li key={p.slug}>
-              <Link
-                href={`/blog/${p.slug}`}
-                className="block h-full rounded-xl border border-line p-6 no-underline text-ink hover:border-brand"
-              >
-                <p className="text-xs uppercase tracking-wide text-brand font-semibold">{p.category}</p>
-                <p className="text-lg font-bold mt-1">{p.title}</p>
-                <p className="text-muted mt-1 text-sm">{p.description}</p>
+            <li key={p.slug} className="border-b border-line pb-6">
+              <Link href={`/blog/${p.slug}`} className="block no-underline text-ink group">
+                <p className="font-serif italic text-sm text-accent">{p.category}</p>
+                <p className="font-serif text-xl font-semibold mt-1 leading-snug group-hover:text-brand">{p.title}</p>
+                <p className="text-muted mt-2 text-sm leading-relaxed">{p.description}</p>
               </Link>
             </li>
           ))}
