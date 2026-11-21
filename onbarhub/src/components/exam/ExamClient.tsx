@@ -8,6 +8,8 @@ import {
   formatClock,
   scoreMock,
 } from "@/lib/exam";
+import { useAuth } from "@/components/auth/AuthProvider";
+import { getSupabase } from "@/lib/supabase";
 
 type Phase = "setup" | "running" | "review";
 
@@ -358,12 +360,13 @@ function Review({
   onRestart: () => void;
   onRetake: () => void;
 }) {
+  const { user } = useAuth();
   const score: ScoreResult = useMemo(() => scoreMock(mock, answers), [mock, answers]);
   const totalMs = Object.values(times).reduce((a, b) => a + b, 0);
   const totalTimeSec = Math.round(totalMs / 1000) || elapsed;
   const avgSec = mock.questions.length ? totalTimeSec / mock.questions.length : 0;
 
-  // save once on mount
+  // save once on mount: always to this browser, and to the account if signed in
   const saved = useRef(false);
   useEffect(() => {
     if (saved.current) return;
@@ -378,7 +381,23 @@ function Review({
       totalTimeSec,
       timed,
     });
-  }, [mock, score, totalTimeSec, timed]);
+    const sb = getSupabase();
+    if (sb && user) {
+      sb.from("attempts")
+        .insert({
+          user_id: user.id,
+          mock_id: mock.id,
+          mock_title: mock.title,
+          pct: score.pct,
+          correct: score.correct,
+          total: score.total,
+          total_time_sec: totalTimeSec,
+          timed,
+          detail: { answers, times, flags },
+        })
+        .then(() => {});
+    }
+  }, [mock, score, totalTimeSec, timed, user, answers, times, flags]);
 
   const slowest = useMemo(
     () =>

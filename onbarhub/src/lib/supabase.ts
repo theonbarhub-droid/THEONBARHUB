@@ -1,13 +1,12 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
-// Public values. Safe to ship in client code; access is controlled by Row Level
-// Security in the database, not by hiding these. Set them in Vercel as:
-//   NEXT_PUBLIC_SUPABASE_URL
-//   NEXT_PUBLIC_SUPABASE_ANON_KEY
-const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+// Public values. The publishable key is designed to be exposed in the browser;
+// data is protected by Row Level Security in the database, not by hiding it.
+// Env vars override these if set (NEXT_PUBLIC_SUPABASE_URL / _ANON_KEY).
+const url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "https://jhmqtjkvipubhiucplgb.supabase.co";
+const anon =
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "sb_publishable_mnuCrZYg8B8PDf2uGtPF_Q_HQ7KzlA4";
 
-/** True once the two env vars are set, so UI can show auth or a "coming soon" state. */
 export const supabaseConfigured = Boolean(url && anon);
 
 let client: SupabaseClient | null = null;
