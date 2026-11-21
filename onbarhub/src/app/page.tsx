@@ -66,6 +66,28 @@ export default function Home() {
             </Link>
           </div>
         </div>
+
+        <div className="mt-5 grid gap-5 sm:grid-cols-2">
+          <Link
+            href="/tools/readiness"
+            className="rounded-2xl border border-line bg-card p-6 no-underline text-ink transition hover:border-brand"
+          >
+            <p className="font-serif text-xl font-semibold">Why are you struggling?</p>
+            <p className="text-muted mt-2 text-sm leading-relaxed">
+              A two-minute check that finds whether your real problem is the material, finding it, the clock, or
+              technique, and what to do about each.
+            </p>
+          </Link>
+          <Link
+            href="/tools/study-planner"
+            className="rounded-2xl border border-line bg-card p-6 no-underline text-ink transition hover:border-brand"
+          >
+            <p className="font-serif text-xl font-semibold">Study planner</p>
+            <p className="text-muted mt-2 text-sm leading-relaxed">
+              Your exam date and weekly hours become a realistic plan across subjects, practice and indexing.
+            </p>
+          </Link>
+        </div>
       </section>
 
       <section className="mx-auto max-w-5xl px-5 pb-20">
